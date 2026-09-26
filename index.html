@@ -1,0 +1,428 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Teoría General de Sistemas (TGS)</title>
+    <style>
+        :root {
+            --bg-color: #f1f5f9;
+            --text-dark: #0f172a;
+            --text-muted: #475569;
+            --cat-estructura: #4f46e5;
+            --cat-flujos: #059669;
+            --cat-dinamica: #d97706;
+        }
+
+        * {
+            box-sizing: border-box;
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-dark);
+            margin: 0;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .hero {
+            background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%);
+            color: white;
+            padding: 35px 25px;
+            border-radius: 20px;
+            box-shadow: 0 10px 25px -5px rgba(59, 130, 246, 0.4);
+            margin-bottom: 30px;
+        }
+
+        .hero h1 { margin: 0 0 12px 0; font-size: 2.2rem; font-weight: 800; }
+        .hero p { margin: 0; font-size: 1.05rem; line-height: 1.6; opacity: 0.95; }
+
+        .controls {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+            background: white;
+            padding: 15px 20px;
+            border-radius: 16px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+        }
+
+        .search-box { flex: 1; min-width: 250px; }
+        .search-box input {
+            width: 100%;
+            padding: 10px 18px;
+            border: 2px solid #e2e8f0;
+            border-radius: 12px;
+            font-size: 0.95rem;
+            outline: none;
+        }
+
+        .filter-buttons { display: flex; gap: 8px; flex-wrap: wrap; }
+        .btn-filter {
+            background-color: #f1f5f9;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 0.85rem;
+            color: var(--text-muted);
+        }
+
+        .btn-filter.active[data-cat="todos"] { background-color: #0f172a; color: white; }
+        .btn-filter.active[data-cat="Estructura"] { background-color: var(--cat-estructura); color: white; }
+        .btn-filter.active[data-cat="Flujos"] { background-color: var(--cat-flujos); color: white; }
+        .btn-filter.active[data-cat="Dinámica"] { background-color: var(--cat-dinamica); color: white; }
+
+        .grid-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 20px;
+        }
+
+        .card {
+            background-color: white;
+            border-radius: 16px;
+            padding: 20px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+            cursor: pointer;
+            transition: transform 0.25s ease, box-shadow 0.25s ease;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            border: 1px solid #f1f5f9;
+        }
+
+        .card:hover {
+            transform: translateY(-6px);
+            box-shadow: 0 12px 20px -5px rgba(0, 0, 0, 0.1);
+        }
+
+        .card h3 { margin: 0 0 10px 0; font-size: 1.25rem; }
+        .card p { color: var(--text-muted); font-size: 0.9rem; line-height: 1.4; margin: 0 0 12px 0; }
+
+        /* Estilo para las imágenes dentro de las tarjetas */
+        .card img {
+            width: 100%;
+            height: 150px;
+            object-fit: cover;
+            border-radius: 10px;
+            margin-bottom: 12px;
+        }
+
+        .badge {
+            align-self: flex-start;
+            font-size: 0.75rem;
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-weight: 700;
+            text-transform: uppercase;
+        }
+
+        .badge-estructura { background-color: #e0e7ff; color: var(--cat-estructura); }
+        .badge-flujos { background-color: #d1fae5; color: var(--cat-flujos); }
+        .badge-dinamica { background-color: #fef3c7; color: var(--cat-dinamica); }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background-color: rgba(15, 23, 42, 0.7);
+            backdrop-filter: blur(5px);
+            justify-content: center; align-items: center;
+            z-index: 1000; padding: 20px;
+        }
+
+        .modal-content {
+            background-color: white;
+            border-radius: 20px;
+            padding: 25px;
+            max-width: 500px;
+            width: 100%;
+            position: relative;
+        }
+
+        .close-btn {
+            position: absolute; top: 15px; right: 15px;
+            width: 30px; height: 30px;
+            background-color: #f1f5f9; border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            cursor: pointer; font-weight: bold;
+        }
+
+        .modal-box {
+            background-color: #f8fafc;
+            border-radius: 12px;
+            padding: 12px;
+            margin-top: 15px;
+            border-left: 4px solid #3b82f6;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <div class="hero">
+            <h1>Teoría General de Sistemas (TGS)</h1>
+            <p>Modelos, principios y conceptos clave para comprender la estructura y dinámica de los sistemas.</p>
+        </div>
+
+        <div class="controls">
+            <div class="search-box">
+                <input type="text" id="searchInput" placeholder="🔍 Buscar concepto...">
+            </div>
+            <div class="filter-buttons">
+                <button class="btn-filter active" data-cat="todos" onclick="filterCategory('todos')">Todos</button>
+                <button class="btn-filter" data-cat="Estructura" onclick="filterCategory('Estructura')">Estructura</button>
+                <button class="btn-filter" data-cat="Flujos" onclick="filterCategory('Flujos')">Flujos</button>
+                <button class="btn-filter" data-cat="Dinámica" onclick="filterCategory('Dinámica')">Dinámica</button>
+            </div>
+        </div>
+
+        <!-- CONTENEDOR DE TARJETAS -->
+        <div class="grid-container" id="cardsGrid">
+
+            <!-- 1. AMBIENTE -->
+            <div class="card" data-cat="Estructura" onclick="openModal('Ambiente', 'El entorno externo que rodea e influye al sistema.', 'En una empresa, el mercado y las leyes forman su ambiente.')">
+                <div>
+                    <h3>Ambiente</h3>
+                    <p>El entorno externo que rodea e influye al sistema sin que este lo controle directamente.</p>
+                    <img src="/images/Ambiente.jfif" alt="Ambiente">
+                </div>
+                <span class="badge badge-estructura">Estructura</span>
+            </div>
+
+            <!-- 2. ATRIBUTO -->
+            <div class="card" data-cat="Estructura" onclick="openModal('Atributo', 'Propiedades o características que identifican a los elementos.', 'Carrera y promedio de un estudiante.')">
+                <div>
+                    <h3>Atributo</h3>
+                    <p>Las propiedades o características que identifican a los elementos del sistema.</p>
+                    <img src="images/Caracteristicas.jfif" alt="Atributo">
+                </div>
+                <span class="badge badge-estructura">Estructura</span>
+            </div>
+
+            <!-- 3. CIBERNÉTICA -->
+            <div class="card" data-cat="Dinámica" onclick="openModal('Cibernética', 'Ciencia del control y la comunicación en sistemas autorregulados.', 'El piloto automático de un avión.')">
+                <div>
+                    <h3>Cibernética</h3>
+                    <p>Ciencia del control y comunicación enfocada en cómo los sistemas se autorregulan.</p>
+                    <img src="/images/Cibernetica.jfif" alt="Cibernética">
+                </div>
+                <span class="badge badge-dinamica">Dinámica</span>
+            </div>
+
+            <!-- 4. CIRCULARIDAD -->
+            <div class="card" data-cat="Dinámica" onclick="openModal('Circularidad', 'Proceso donde las salidas vuelven como entradas de control.', 'El ciclo de sudoración para bajar la fiebre.')">
+                <div>
+                    <h3>Circularidad</h3>
+                    <p>Proceso continuo donde la salida del sistema vuelve a ingresar como entrada (Feedback).</p>
+                    <img src="/images/Circularidad.jfif" alt="Circularidad">
+                </div>
+                <span class="badge badge-dinamica">Dinámica</span>
+            </div>
+
+            <!-- 5. COMPLEJIDAD -->
+            <div class="card" data-cat="Estructura" onclick="openModal('Complejidad', 'Cantidad de elementos y variedad de relaciones internas.', 'El tráfico de una gran metrópolis.')">
+                <div>
+                    <h3>Complejidad</h3>
+                    <p>Cantidad de elementos y variedad de relaciones posibles dentro del sistema.</p>
+                    <img src="/images/Complejidad.jfif" alt="Complejidad">
+                </div>
+                <span class="badge badge-estructura">Estructura</span>
+            </div>
+
+            <!-- 6. CONGLOMERADO -->
+            <div class="card" data-cat="Estructura" onclick="openModal('Conglomerado', 'Elementos agrupados sin interacción o interdependencia.', 'Un montón de piedras apiladas.')">
+                <div>
+                    <h3>Conglomerado</h3>
+                    <p>Conjunto de elementos reunidos sin relación de interdependencia entre sí.</p>
+                    <img src="/images/Conglomerado.jfif" alt="Conglomerado">
+                </div>
+                <span class="badge badge-estructura">Estructura</span>
+            </div>
+
+            <!-- 7. ELEMENTO -->
+            <div class="card" data-cat="Estructura" onclick="openModal('Elemento', 'Partes o componentes individuales de un sistema.', 'Los jugadores dentro de un equipo de fútbol.')">
+                <div>
+                    <h3>Elemento</h3>
+                    <p>Las partes o componentes básicos e indispensables que integran un sistema.</p>
+                    <img src="images/Elemento.jfif" alt="Elemento">
+                </div>
+                <span class="badge badge-estructura">Estructura</span>
+            </div>
+
+            <!-- 8. EMERGENCIA -->
+            <div class="card" data-cat="Dinámica" onclick="openModal('Emergencia', 'Propiedades que surgen de la unión de los elementos.', 'El agua resulta de la combinación de H y O.')">
+                <div>
+                    <h3>Emergencia</h3>
+                    <p>Propiedades o cualidades globales que surgen de la interacción de sus partes.</p>
+                    <img src="/images/Emergencia.jfif" alt="Emergencia">
+                </div>
+                <span class="badge badge-dinamica">Dinámica</span>
+            </div>
+
+            <!-- 9. ENERGÍA -->
+            <div class="card" data-cat="Flujos" onclick="openModal('Energía', 'Insumo o fuerza motriz necesaria para activar los procesos.', 'Electricidad para que opere una fábrica.')">
+                <div>
+                    <h3>Energía</h3>
+                    <p>La fuerza o recurso necesario para que los procesos del sistema funcionen.</p>
+                    <img src="/images/Energia.jfif" alt="Energía">
+                </div>
+                <span class="badge badge-flujos">Flujos</span>
+            </div>
+
+            <!-- 10. ENTRADA (INPUT) -->
+            <div class="card" data-cat="Flujos" onclick="openModal('Entrada', 'Importación de materia, energía o datos hacia el sistema.', 'Los ingredientes recibidos en un restaurante.')">
+                <div>
+                    <h3>Entrada (Input)</h3>
+                    <p>Recursos, datos o materia prima ingresados desde el ambiente al sistema.</p>
+                    <img src="/images/Entrada.jfif" alt="Entrada">
+                </div>
+                <span class="badge badge-flujos">Flujos</span>
+            </div>
+
+            <!-- 11. ENTROPÍA -->
+            <div class="card" data-cat="Dinámica" onclick="openModal('Entropía', 'Tendencia natural de un sistema hacia el desorden y desgaste.', 'Una casa sin mantenimiento que colapsa.')">
+                <div>
+                    <h3>Entropía</h3>
+                    <p>Tendencia natural de los sistemas hacia el desorden, desgaste y la desintegración.</p>
+                    <img src="/images/Entropia.jfif" alt="Entropía">
+                </div>
+                <span class="badge badge-dinamica">Dinámica</span>
+            </div>
+
+            <!-- 12. EQUIFINALIDAD -->
+            <div class="card" data-cat="Dinámica" onclick="openModal('Equifinalidad', 'Alcanzar el mismo objetivo final por distintos caminos.', 'Graduarse de la universidad usando distintas rutas de estudio.')">
+                <div>
+                    <h3>Equifinalidad</h3>
+                    <p>Principio donde un sistema alcanza el mismo estado final desde orígenes distintos.</p>
+                    <img src="/images/Equifinalidad.jfif" alt="Equifinalidad">
+                </div>
+                <span class="badge badge-dinamica">Dinámica</span>
+            </div>
+
+            <!-- 13. EQUILIBRIO -->
+            <div class="card" data-cat="Dinámica" onclick="openModal('Equilibrio', 'Estado de estabilidad autorregulada (Homeostasis).', 'El cuerpo manteniendo 37°C de temperatura.')">
+                <div>
+                    <h3>Equilibrio</h3>
+                    <p>Estado dinámico de estabilidad que mantiene un sistema frente al ambiente.</p>
+                    <img src="/images/Equilibrio.jfif" alt="Equilibrio">
+                </div>
+                <span class="badge badge-dinamica">Dinámica</span>
+            </div>
+
+            <!-- 14. ESTRUCTURA -->
+            <div class="card" data-cat="Estructura" onclick="openModal('Estructura', 'Red de relaciones interdependientes entre sus partes.', 'El organigrama de una empresa.')">
+                <div>
+                    <h3>Estructura</h3>
+                    <p>La red de relaciones e interconexiones estables entre los elementos.</p>
+                    <img src="/images/Estructura.jfif" alt="Estructura">
+                </div>
+                <span class="badge badge-estructura">Estructura</span>
+            </div>
+
+            <!-- 15. FRONTERA -->
+            <div class="card" data-cat="Estructura" onclick="openModal('Frontera', 'Límite real o conceptual que separa el sistema del ambiente.', 'La membrana celular en biología.')">
+                <div>
+                    <h3>Frontera</h3>
+                    <p>Línea real o conceptual que separa al sistema de su entorno externo.</p>
+                    <img src="/images/Frontera.jfif" alt="Frontera">
+                </div>
+                <span class="badge badge-estructura">Estructura</span>
+            </div>
+
+            <!-- 16. FUNCIÓN -->
+            <div class="card" data-cat="Dinámica" onclick="openModal('Función', 'Tarea o proceso continuo para lograr el objetivo.', 'Bombear sangre en el sistema circulatorio.')">
+                <div>
+                    <h3>Función</h3>
+                    <p>El propósito o proceso continuo que ejecuta el sistema para lograr su objetivo.</p>
+                    <img src="/images/Funcion.jfif" alt="Función">
+                </div>
+                <span class="badge badge-dinamica">Dinámica</span>
+            </div>
+
+            <!-- 17. INFORMACIÓN -->
+            <div class="card" data-cat="Flujos" onclick="openModal('Información', 'Datos que reducen la incertidumbre y permiten guiarse.', 'Indicadores de un velocímetro.')">
+                <div>
+                    <h3>Información</h3>
+                    <p>Datos organizados que reducen la incertidumbre para la toma de decisiones.</p>
+                    <img src="/images/Informacion.jfif" alt="Información">
+                </div>
+                <span class="badge badge-flujos">Flujos</span>
+            </div>
+
+            <!-- 18. SALIDA (OUTPUT) -->
+            <div class="card" data-cat="Flujos" onclick="openModal('Salida', 'Resultados o productos exportados hacia el entorno.', 'Un automóvil terminado saliendo de la fábrica.')">
+                <div>
+                    <h3>Salida (Output)</h3>
+                    <p>Resultados, productos o desechos arrojados por el sistema hacia el entorno.</p>
+                    <img src="/images/Salida.jfif" alt="Salida">
+                </div>
+                <span class="badge badge-flujos">Flujos</span>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- MODAL -->
+    <div class="modal" id="infoModal">
+        <div class="modal-content">
+            <div class="close-btn" onclick="closeModal()">&times;</div>
+            <h2 id="modalTitle" style="margin-top:0;">Concepto</h2>
+            <p id="modalDesc">Descripción...</p>
+            <div class="modal-box">
+                <h4 style="margin:0 0 5px 0; color:#3b82f6;">💡 EJEMPLO PRÁCTICO</h4>
+                <p id="modalExample" style="margin:0;"></p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Búsqueda en tiempo real
+        document.getElementById('searchInput').addEventListener('input', function(e) {
+            const val = e.target.value.toLowerCase();
+            document.querySelectorAll('.card').forEach(card => {
+                const text = card.innerText.toLowerCase();
+                card.style.display = text.includes(val) ? 'flex' : 'none';
+            });
+        });
+
+        // Filtrado por categoría
+        function filterCategory(cat) {
+            document.querySelectorAll('.btn-filter').forEach(btn => {
+                btn.classList.toggle('active', btn.getAttribute('data-cat') === cat);
+            });
+
+            document.querySelectorAll('.card').forEach(card => {
+                if (cat === 'todos' || card.getAttribute('data-cat') === cat) {
+                    card.style.display = 'flex';
+                } else {
+                    card.style.display = 'none';
+                }
+            });
+        }
+
+        // Abrir y cerrar Modal
+        function openModal(title, desc, example) {
+            document.getElementById('modalTitle').innerText = title;
+            document.getElementById('modalDesc').innerText = desc;
+            document.getElementById('modalExample').innerText = example;
+            document.getElementById('infoModal').style.display = 'flex';
+        }
+
+        function closeModal() {
+            document.getElementById('infoModal').style.display = 'none';
+        }
+    </script>
+</body>
+</html>
